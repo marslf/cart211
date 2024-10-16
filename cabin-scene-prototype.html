@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cabin Scene Prototype</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+        #cabin-scene {
+            width: 100%;
+            height: 100vh;
+            background-image: url('cabin-background.png'); /* Replace with your PNG */
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .interactive-element {
+            position: absolute;
+            cursor: pointer;
+        }
+        #cabin {
+            top: 50%;
+            left: 30%;
+            width: 200px;
+            height: 150px;
+            background-image: url('cabin.png'); /* Replace with your PNG */
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        #campfire {
+            bottom: 20%;
+            right: 20%;
+            width: 100px;
+            height: 100px;
+            background-image: url('campfire.png'); /* Replace with your PNG */
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+        .close-popup {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+        /* Paddle Sorting Game Styles */
+        .sorting-game {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .paddle-boxes {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .paddle-box {
+            width: 100px;
+            height: 150px;
+            border: 2px solid #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .unsorted-box {
+            width: 300px;
+            height: 100px;
+            border: 2px solid #000;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .paddle {
+            width: 20px;
+            height: 60px;
+            background-color: #8B4513;
+            cursor: move;
+            margin: 5px;
+        }
+        .paddle.small { height: 40px; }
+        .paddle.medium { height: 60px; }
+        .paddle.large { height: 80px; }
+        /* Marshmallow Roasting Styles */
+        #marshmallow {
+            width: 50px;
+            height: 50px;
+            background-image: url('marshmallow-phase1.png'); /* Replace with your PNG */
+            background-size: contain;
+            background-repeat: no-repeat;
+            position: relative;
+            left: 175px;
+            top: 100px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="cabin-scene">
+        <div id="cabin" class="interactive-element"></div>
+        <div id="campfire" class="interactive-element"></div>
+    </div>
+
+    <div id="cabin-popup" class="popup">
+        <span class="close-popup">&times;</span>
+        <h2>Sort the Paddles!</h2>
+        <p>Drag from the big box to sort the differently sized paddles in the correct boxes</p>
+        <div class="sorting-game">
+            <div class="paddle-boxes">
+                <div class="paddle-box" data-size="small">
+                    <h3>Small</h3>
+                </div>
+                <div class="paddle-box" data-size="medium">
+                    <h3>Medium</h3>
+                </div>
+                <div class="paddle-box" data-size="large">
+                    <h3>Large</h3>
+                </div>
+            </div>
+            <div class="unsorted-box"></div>
+        </div>
+    </div>
+
+    <div id="campfire-popup" class="popup">
+        <span class="close-popup">&times;</span>
+        <h2>Roast some marshmallows!</h2>
+        <p>Click and hold the marshmallow to roast it. Release to stop.</p>
+        <div id="marshmallow"></div>
+    </div>
+
+    <script>
+        // Cabin Scene Interaction
+        const cabin = document.getElementById('cabin');
+        const campfire = document.getElementById('campfire');
+        const cabinPopup = document.getElementById('cabin-popup');
+        const campfirePopup = document.getElementById('campfire-popup');
+        const closeButtons = document.querySelectorAll('.close-popup');
+
+        cabin.addEventListener('click', () => cabinPopup.style.display = 'block');
+        campfire.addEventListener('click', () => campfirePopup.style.display = 'block');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                cabinPopup.style.display = 'none';
+                campfirePopup.style.display = 'none';
+            });
+        });
+
+        // Paddle Sorting Game
+        const unsortedBox = document.querySelector('.unsorted-box');
+        const paddleBoxes = document.querySelectorAll('.paddle-box');
+
+        function createPaddles() {
+            const sizes = ['small', 'medium', 'large'];
+            sizes.forEach(size => {
+                for (let i = 0; i < 3; i++) {
+                    const paddle = document.createElement('div');
+                    paddle.className = `paddle ${size}`;
+                    paddle.draggable = true;
+                    paddle.addEventListener('dragstart', drag);
+                    unsortedBox.appendChild(paddle);
+                }
+            });
+        }
+
+        function drag(event) {
+            event.dataTransfer.setData('text', event.target.className);
+        }
+
+        paddleBoxes.forEach(box => {
+            box.addEventListener('dragover', allowDrop);
+            box.addEventListener('drop', drop);
+        });
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            const data = event.dataTransfer.getData('text');
+            const paddleSize = data.split(' ')[1];
+            if (event.target.dataset.size === paddleSize) {
+                event.target.style.backgroundColor = '#90EE90'; // Light green for correct
+                event.target.appendChild(document.querySelector(`.${data}`));
+            } else {
+                event.target.style.backgroundColor = '#FFA07A'; // Light salmon for incorrect
+            }
+        }
+
+        createPaddles();
+
+        // Marshmallow Roasting Game
+        const marshmallow = document.getElementById('marshmallow');
+        let roastingInterval;
+        let roastingPhase = 1;
+
+        marshmallow.addEventListener('mousedown', startRoasting);
+        marshmallow.addEventListener('mouseup', stopRoasting);
+        marshmallow.addEventListener('mouseleave', stopRoasting);
+
+        function startRoasting() {
+            roastingInterval = setInterval(() => {
+                roastingPhase = (roastingPhase % 4) + 1;
+                marshmallow.style.backgroundImage = `url('marshmallow-phase${roastingPhase}.png')`; // Replace with your PNGs
+            }, 3000);
+        }
+
+        function stopRoasting() {
+            clearInterval(roastingInterval);
+            // The marshmallow stays in its current phase
+        }
+    </script>
+</body>
+</html>
