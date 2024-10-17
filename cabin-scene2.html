@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daydream Lake</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        .title {
+            font-family: 'Fredoka One', cursive;
+            text-align: center;
+            font-size: 3em;
+            margin: 20px 0;
+        }
+
+        #cabin-scene {
+            position: relative;
+            width: 800px;
+            height: 600px;
+        }
+
+        .interactive-element {
+            position: absolute;
+            cursor: pointer;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .paddle {
+            position: absolute;
+            cursor: move;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .paddle.small {
+            /* INSERT: background-image: url('path-to-small-paddle.png'); */
+            width: 40px;
+            height: 100px;
+        }
+
+        .paddle.medium {
+            /* INSERT: background-image: url('path-to-medium-paddle.png'); */
+            width: 50px;
+            height: 125px;
+        }
+
+        .paddle.large {
+            /* INSERT: background-image: url('path-to-large-paddle.png'); */
+            width: 60px;
+            height: 150px;
+        }
+
+        .paddle-boxes {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .paddle-box {
+            width: 150px;
+            height: 200px;
+            border: 2px dashed #666;
+            text-align: center;
+        }
+
+        .unsorted-box {
+            width: 100%;
+            height: 150px;
+            border: 2px solid #666;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .fire-container {
+            /* INSERT: background-image: url('path-to-fire.png'); */
+            width: 200px;
+            height: 200px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: relative;
+            margin: 20px auto;
+        }
+
+        #marshmallow {
+            /* INSERT: background-image: url('path-to-marshmallow-raw.png'); */
+            width: 50px;
+            height: 50px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">Daydream Lake</h1>
+    <!-- Your original HTML structure here -->
+
+    <script>
+        // Create paddles in unsorted box
+        const paddles = [
+            { size: 'small', left: '10%' },
+            { size: 'medium', left: '40%' },
+            { size: 'large', left: '70%' }
+        ];
+
+        function createPaddles() {
+            const unsortedBox = document.querySelector('.unsorted-box');
+            paddles.forEach((paddle) => {
+                const paddleElement = document.createElement('div');
+                paddleElement.className = `paddle ${paddle.size}`;
+                paddleElement.draggable = true;
+                paddleElement.dataset.size = paddle.size;
+                paddleElement.style.left = paddle.left;
+                paddleElement.style.top = '50%';
+                paddleElement.style.transform = 'translateY(-50%)';
+                unsortedBox.appendChild(paddleElement);
+            });
+        }
+
+        // Marshmallow states and roasting logic
+        const marshmallowStates = [
+            'url(path-to-marshmallow-raw.png)',
+            'url(path-to-marshmallow-golden.png)',
+            'url(path-to-marshmallow-perfect.png)',
+            'url(path-to-marshmallow-burnt.png)'
+        ];
+
+        let roastingInterval;
+        let roastLevel = 0;
+        const marshmallow = document.querySelector('#marshmallow');
+
+        function startRoasting() {
+            roastingInterval = setInterval(() => {
+                if (roastLevel < marshmallowStates.length - 1) {
+                    roastLevel++;
+                    marshmallow.style.backgroundImage = marshmallowStates[roastLevel];
+                }
+            }, 1000);
+        }
+
+        function stopRoasting() {
+            clearInterval(roastingInterval);
+        }
+
+        function resetMarshmallow() {
+            roastLevel = 0;
+            marshmallow.style.backgroundImage = marshmallowStates[0];
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            createPaddles();
+            
+            // Paddle drag and drop
+            document.querySelectorAll('.paddle').forEach(paddle => {
+                paddle.addEventListener('dragstart', e => {
+                    e.dataTransfer.setData('text/plain', e.target.dataset.size);
+                });
+            });
+
+            document.querySelectorAll('.paddle-box').forEach(box => {
+                box.addEventListener('dragover', e => e.preventDefault());
+                box.addEventListener('drop', e => {
+                    e.preventDefault();
+                    const paddleSize = e.dataTransfer.getData('text/plain');
+                    if (paddleSize === box.dataset.size) {
+                        const paddle = document.querySelector(`.paddle.${paddleSize}`);
+                        box.appendChild(paddle);
+                        paddle.style.position = 'relative';
+                        paddle.style.left = '50%';
+                        paddle.style.transform = 'translateX(-50%)';
+                    }
+                });
+            });
+
+            // Marshmallow events
+            marshmallow.addEventListener('mousedown', startRoasting);
+            marshmallow.addEventListener('mouseup', stopRoasting);
+            marshmallow.addEventListener('mouseleave', stopRoasting);
+            marshmallow.addEventListener('click', () => {
+                if (roastLevel >= marshmallowStates.length - 1) {
+                    resetMarshmallow();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
