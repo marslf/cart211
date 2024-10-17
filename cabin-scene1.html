@@ -110,7 +110,6 @@
             height: 150px;
             border: 2px solid #666;
             margin-top: 20px;
-            /* INSERT: Your hand-drawn paddles here */
             background: url('PaddleMedium.png') no-repeat center center;
             background-size: contain;
         }
@@ -119,7 +118,6 @@
         #marshmallow {
             width: 300px;
             height: 300px;
-            /* INSERT: Your initial marshmallow state image */
             background: url('Marshmallow1.png') no-repeat center center;
             background-size: contain;
             position: relative;
@@ -161,23 +159,20 @@
         }
 
         .paddle.small {
-            width: 40px;
-            height: 100px;
-            /* REPLACE: PaddleSmall.png */
+            width: 80px;
+            height: 170px;
             background-image: url('PaddleSmall.png');
         }
 
         .paddle.medium {
-            width: 50px;
-            height: 125px;
-            /* KEEP YOUR EXISTING: PaddleMedium.png */
+            width: 80px;
+            height: 170px;
             background-image: url('PaddleMedium.png');
         }
 
         .paddle.large {
-            width: 60px;
-            height: 150px;
-            /* REPLACE: PaddleLarge.png */
+            width: 80px;
+            height: 170px;
             background-image: url('PaddleBig.png');
         }
 
@@ -185,7 +180,69 @@
         #marshmallow {
             cursor: pointer;
             transition: background-image 0.3s;
-            /* Your existing styling remains */
+        }
+
+        /* Paddle sizing and positioning */
+        .paddle-box {
+            min-height: 200px;
+            border: 2px dashed #ccc;
+            margin: 10px;
+            position: relative;
+        }
+
+        .paddle {
+            width: 40px;
+            position: absolute;
+            cursor: move;
+        }
+
+        .paddle[data-size="small"] {
+            height: 100px;
+        }
+
+        .paddle[data-size="medium"] {
+            height: 150px;
+        }
+
+        .paddle[data-size="large"] {
+            height: 200px;
+        }
+
+        .unsorted-box {
+            min-height: 100px;
+            border: 2px dashed #ccc;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        /* Popup sizing */
+        .popup {
+            width: 80%;
+            max-width: 500px;
+            padding: 30px;
+        }
+
+        .paddle-boxes {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        /* Title positioning */
+        #cabin-scene {
+            position: relative;
+            padding-top: 60px;
+        }
+
+        .page-title {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            text-align: center;
         }
     </style>
 </head>
@@ -196,6 +253,8 @@
         <div id="cabin" class="interactive-element"></div>
         <div id="campfire" class="interactive-element"></div>
     </div>
+
+    <h1 class="page-title">Daydream Lake</h1>
 
     <!-- Popup overlay -->
     <div class="popup-overlay"></div>
@@ -278,11 +337,10 @@
 
         // MARSHMALLOW ROASTING GAME
         const marshmallowStates = [
-            /* REPLACE THESE WITH YOUR MARSHMALLOW STATE IMAGES */
-            'Marshmallow1.png',  // You already have this one
-            'Marshmallow2.png',  // Add your golden state
-            'Marshmallow3.png',  // Add your perfect state
-            'Marshmallow4.png'   // Add your burnt state
+            'Marshmallow1.png',
+            'Marshmallow2.png',
+            'Marshmallow3.png',
+            'Marshmallow4.png'
         ];
 
         let roastingInterval;
@@ -313,11 +371,7 @@
 
         // INITIALIZATION AND EVENT LISTENERS
         document.addEventListener('DOMContentLoaded', () => {
-            // Create title
-            const title = document.createElement('h1');
-            title.className = 'title';
-            title.textContent = 'Daydream Lake';
-            document.body.insertBefore(title, document.querySelector('#cabin-scene'));
+
 
             // Initialize paddles
             createPaddles();
@@ -357,6 +411,90 @@
         });
 
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function initializePaddleGame() {
+                const unsortedBox = document.querySelector('.unsorted-box');
+
+                // Create 9 paddles (3 of each size)
+                const sizes = ['small', 'medium', 'large'];
+                const paddles = [];
+
+                sizes.forEach(size => {
+                    for (let i = 0; i < 3; i++) {
+                        const paddle = document.createElement('div');
+                        paddle.className = 'paddle';
+                        paddle.setAttribute('data-size', size);
+                        paddle.draggable = true;
+                        paddles.push(paddle);
+                    }
+                });
+
+                // Shuffle and add paddles to unsorted box
+                shuffleArray(paddles);
+                paddles.forEach(paddle => unsortedBox.appendChild(paddle));
+
+                // Add drag and drop functionality
+                setupDragAndDrop();
+            }
+
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+
+            function setupDragAndDrop() {
+                const paddles = document.querySelectorAll('.paddle');
+                const paddleBoxes = document.querySelectorAll('.paddle-box');
+
+                paddles.forEach(paddle => {
+                    paddle.addEventListener('dragstart', handleDragStart);
+                    paddle.addEventListener('dragend', handleDragEnd);
+                });
+
+                paddleBoxes.forEach(box => {
+                    box.addEventListener('dragover', handleDragOver);
+                    box.addEventListener('drop', handleDrop);
+                });
+            }
+
+            function handleDragStart(e) {
+                e.dataTransfer.setData('text/plain', e.target.getAttribute('data-size'));
+                e.target.classList.add('dragging');
+            }
+
+            function handleDragEnd(e) {
+                e.target.classList.remove('dragging');
+            }
+
+            function handleDragOver(e) {
+                e.preventDefault();
+            }
+
+            function handleDrop(e) {
+                e.preventDefault();
+                const paddleSize = e.dataTransfer.getData('text/plain');
+                const targetBox = e.target.closest('.paddle-box');
+
+                if (targetBox && targetBox.getAttribute('data-size') === paddleSize) {
+                    const paddle = document.querySelector('.dragging');
+                    targetBox.appendChild(paddle);
+                }
+            }
+
+            // Reset game when popup closes
+            document.querySelector('.close-popup').addEventListener('click', function () {
+                initializePaddleGame();
+            });
+
+            // Initial setup
+            initializePaddleGame();
+        });
+    </script>
+
 </body>
 
 </html>
