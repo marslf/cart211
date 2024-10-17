@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Cabin Scene</title>
+    <style>
+        /* Base styles */
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Main scene container */
+        #cabin-scene {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background: url('Cabinbackground.png') no-repeat center center;
+            background-size: cover;
+        }
+
+        /* Interactive elements */
+        .interactive-element {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .interactive-element:hover {
+            transform: scale(1.1);
+        }
+
+        /* INSERT: Position your cabin element */
+        #cabin {
+            width: 200px;
+            height: 200px;
+            top: 28%;
+            left: 5%;
+            background: url('Cabin.png') no-repeat center center;
+            background-size: contain;
+        }
+
+        /* INSERT: Position your campfire element */
+        #campfire {
+            width: 150px;
+            height: 150px;
+            bottom: 15%;
+            right: 28%;
+            background: url('Campfire.png') no-repeat center center;
+            background-size: contain;
+        }
+
+        /* Popup styling */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            min-width: 300px;
+        }
+
+        .close-popup {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        /* Paddle sorting game styles */
+        .paddle-boxes {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .paddle-box {
+            width: 150px;
+            height: 200px;
+            border: 2px dashed #666;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .unsorted-box {
+            width: 100%;
+            height: 150px;
+            border: 2px solid #666;
+            margin-top: 20px;
+            /* INSERT: Your hand-drawn paddles here */
+            background: url('PaddleMedium.png') no-repeat center center;
+            background-size: contain;
+        }
+
+        /* Marshmallow roasting game styles */
+        #marshmallow {
+            width: 300px;
+            height: 300px;
+            /* INSERT: Your initial marshmallow state image */
+            background: url('Marshmallow1.png') no-repeat center center;
+            background-size: contain;
+            position: relative;
+            cursor: pointer;
+        }
+
+        /* Campfire popup specific styles */
+        #campfire-popup {
+            text-align: center;
+        }
+
+        #campfire-popup .fire-container {
+            /* INSERT: Your hand-drawn fire image for the popup */
+            background: url('Campfire.png') no-repeat center bottom;
+            background-size: contain;
+            height: 200px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        /* Overlay for popup background */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Main scene container -->
+    <div id="cabin-scene">
+        <div id="cabin" class="interactive-element"></div>
+        <div id="campfire" class="interactive-element"></div>
+    </div>
+
+    <!-- Popup overlay -->
+    <div class="popup-overlay"></div>
+
+    <!-- Cabin popup with paddle sorting game -->
+    <div id="cabin-popup" class="popup">
+        <span class="close-popup">×</span>
+        <h2>Sort the Paddles!</h2>
+        <div class="paddle-boxes">
+            <div class="paddle-box" data-size="small">
+                <h3>Small</h3>
+            </div>
+            <div class="paddle-box" data-size="medium">
+                <h3>Medium</h3>
+            </div>
+            <div class="paddle-box" data-size="large">
+                <h3>Large</h3>
+            </div>
+        </div>
+        <div class="unsorted-box"></div>
+    </div>
+
+    <!-- Campfire popup with marshmallow roasting game -->
+    <div id="campfire-popup" class="popup">
+        <span class="close-popup">×</span>
+        <h2>Roast some marshmallows!</h2>
+        <div class="fire-container">
+            <div id="marshmallow"></div>
+        </div>
+    </div>
+
+    <script>
+        // Show popup function
+        function showPopup(popupId) {
+            document.querySelector('.popup-overlay').style.display = 'block';
+            document.querySelector(`#${popupId}`).style.display = 'block';
+        }
+
+        // Hide popup function
+        function hidePopup() {
+            document.querySelector('.popup-overlay').style.display = 'none';
+            document.querySelectorAll('.popup').forEach(popup => {
+                popup.style.display = 'none';
+            });
+        }
+
+        // Add click listeners to interactive elements
+        document.querySelector('#cabin').addEventListener('click', () => showPopup('cabin-popup'));
+        document.querySelector('#campfire').addEventListener('click', () => showPopup('campfire-popup'));
+
+        // Add click listeners to close buttons
+        document.querySelectorAll('.close-popup').forEach(button => {
+            button.addEventListener('click', hidePopup);
+        });
+
+        // Close popup when clicking overlay
+        document.querySelector('.popup-overlay').addEventListener('click', hidePopup);
+
+        // Marshmallow roasting logic
+        let roastingInterval;
+        let roastLevel = 0;
+        const maxRoastLevel = 3; // Number of marshmallow states - 1
+
+        document.querySelector('#marshmallow').addEventListener('mousedown', startRoasting);
+        document.querySelector('#marshmallow').addEventListener('mouseup', stopRoasting);
+        document.querySelector('#marshmallow').addEventListener('mouseleave', stopRoasting);
+
+        function startRoasting() {
+            roastingInterval = setInterval(() => {
+                if (roastLevel < maxRoastLevel) {
+                    roastLevel++;
+                    updateMarshmallowState();
+                }
+            }, 1000); // Adjust timing as needed
+        }
+
+        function stopRoasting() {
+            clearInterval(roastingInterval);
+        }
+
+        function updateMarshmallowState() {
+            const marshmallow = document.querySelector('#marshmallow');
+            // INSERT: Your different marshmallow state images
+            marshmallow.style.backgroundImage = `url('path-to-your-marshmallow-state-${roastLevel}.png')`;
+        }
+
+        // Paddle sorting game logic can be added here
+        // You'll need to implement drag and drop functionality for the paddles
+    </script>
+</body>
+
+</html>
