@@ -2,152 +2,152 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
 
 <style>
-/* TITLE STYLING */
-.title {
-    font-family: 'Fredoka One', cursive;
-    font-size: 3em;
-    text-align: center;
-    margin: 20px 0;
-    color: #2c3e50;
-}
+    /* TITLE STYLING */
+    .title {
+        font-family: 'Fredoka One', cursive;
+        font-size: 3em;
+        text-align: center;
+        margin: 20px 0;
+        color: #2c3e50;
+    }
 
-/* PADDLE STYLING - Add after your existing styles */
-.paddle {
-    position: absolute;
-    cursor: move;
-    background-size: contain;
-    background-repeat: no-repeat;
-}
+    /* PADDLE STYLING - Add after your existing styles */
+    .paddle {
+        position: absolute;
+        cursor: move;
+        background-size: contain;
+        background-repeat: no-repeat;
+    }
 
-.paddle.small {
-    width: 40px;
-    height: 100px;
-    /* REPLACE: PaddleSmall.png */
-    background-image: url('PaddleSmall.png');
-}
+    .paddle.small {
+        width: 40px;
+        height: 100px;
+        /* REPLACE: PaddleSmall.png */
+        background-image: url('PaddleSmall.png');
+    }
 
-.paddle.medium {
-    width: 50px;
-    height: 125px;
-    /* KEEP YOUR EXISTING: PaddleMedium.png */
-    background-image: url('PaddleMedium.png');
-}
+    .paddle.medium {
+        width: 50px;
+        height: 125px;
+        /* KEEP YOUR EXISTING: PaddleMedium.png */
+        background-image: url('PaddleMedium.png');
+    }
 
-.paddle.large {
-    width: 60px;
-    height: 150px;
-    /* REPLACE: PaddleLarge.png */
-    background-image: url('PaddleBig.png');
-}
+    .paddle.large {
+        width: 60px;
+        height: 150px;
+        /* REPLACE: PaddleLarge.png */
+        background-image: url('PaddleBig.png');
+    }
 
-/* MARSHMALLOW STATES - Add after your existing styles */
-#marshmallow {
-    cursor: pointer;
-    transition: background-image 0.3s;
-    /* Your existing styling remains */
-}
+    /* MARSHMALLOW STATES - Add after your existing styles */
+    #marshmallow {
+        cursor: pointer;
+        transition: background-image 0.3s;
+        /* Your existing styling remains */
+    }
 </style>
 
 <!-- ADD THIS TO THE BOTTOM OF YOUR BODY SECTION -->
 <script>
-// PADDLE SORTING GAME
-const paddles = [
-    { size: 'small', left: '10%' },
-    { size: 'medium', left: '40%' },
-    { size: 'large', left: '70%' }
-];
+    // PADDLE SORTING GAME
+    const paddles = [
+        { size: 'small', left: '10%' },
+        { size: 'medium', left: '40%' },
+        { size: 'large', left: '70%' }
+    ];
 
-function createPaddles() {
-    const unsortedBox = document.querySelector('.unsorted-box');
-    paddles.forEach((paddle) => {
-        const paddleElement = document.createElement('div');
-        paddleElement.className = `paddle ${paddle.size}`;
-        paddleElement.draggable = true;
-        paddleElement.dataset.size = paddle.size;
-        paddleElement.style.left = paddle.left;
-        paddleElement.style.top = '50%';
-        paddleElement.style.transform = 'translateY(-50%)';
-        unsortedBox.appendChild(paddleElement);
-    });
-}
-
-// MARSHMALLOW ROASTING GAME
-const marshmallowStates = [
-    /* REPLACE THESE WITH YOUR MARSHMALLOW STATE IMAGES */
-    'Marshmallow1.png',  // You already have this one
-    'Marshmallow2.png',  // Add your golden state
-    'Marshmallow3.png',  // Add your perfect state
-    'Marshmallow4.png'   // Add your burnt state
-];
-
-let roastingInterval;
-let roastLevel = 0;
-
-function startRoasting() {
-    roastingInterval = setInterval(() => {
-        if (roastLevel < marshmallowStates.length - 1) {
-            roastLevel++;
-            updateMarshmallowState();
-        }
-    }, 1000);
-}
-
-function stopRoasting() {
-    clearInterval(roastingInterval);
-}
-
-function resetMarshmallow() {
-    roastLevel = 0;
-    updateMarshmallowState();
-}
-
-function updateMarshmallowState() {
-    const marshmallow = document.querySelector('#marshmallow');
-    marshmallow.style.backgroundImage = `url('${marshmallowStates[roastLevel]}')`;
-}
-
-// INITIALIZATION AND EVENT LISTENERS
-document.addEventListener('DOMContentLoaded', () => {
-    // Create title
-    const title = document.createElement('h1');
-    title.className = 'title';
-    title.textContent = 'Daydream Lake';
-    document.body.insertBefore(title, document.querySelector('#cabin-scene'));
-
-    // Initialize paddles
-    createPaddles();
-    
-    // Paddle drag and drop
-    document.querySelectorAll('.paddle').forEach(paddle => {
-        paddle.addEventListener('dragstart', e => {
-            e.dataTransfer.setData('text/plain', e.target.dataset.size);
+    function createPaddles() {
+        const unsortedBox = document.querySelector('.unsorted-box');
+        paddles.forEach((paddle) => {
+            const paddleElement = document.createElement('div');
+            paddleElement.className = `paddle ${paddle.size}`;
+            paddleElement.draggable = true;
+            paddleElement.dataset.size = paddle.size;
+            paddleElement.style.left = paddle.left;
+            paddleElement.style.top = '50%';
+            paddleElement.style.transform = 'translateY(-50%)';
+            unsortedBox.appendChild(paddleElement);
         });
-    });
+    }
 
-    document.querySelectorAll('.paddle-box').forEach(box => {
-        box.addEventListener('dragover', e => e.preventDefault());
-        box.addEventListener('drop', e => {
-            e.preventDefault();
-            const paddleSize = e.dataTransfer.getData('text/plain');
-            if (paddleSize === box.dataset.size) {
-                const paddle = document.querySelector(`.paddle.${paddleSize}`);
-                box.appendChild(paddle);
-                paddle.style.position = 'relative';
-                paddle.style.left = '50%';
-                paddle.style.transform = 'translateX(-50%)';
+    // MARSHMALLOW ROASTING GAME
+    const marshmallowStates = [
+        /* REPLACE THESE WITH YOUR MARSHMALLOW STATE IMAGES */
+        'Marshmallow1.png',  // You already have this one
+        'Marshmallow2.png',  // Add your golden state
+        'Marshmallow3.png',  // Add your perfect state
+        'Marshmallow4.png'   // Add your burnt state
+    ];
+
+    let roastingInterval;
+    let roastLevel = 0;
+
+    function startRoasting() {
+        roastingInterval = setInterval(() => {
+            if (roastLevel < marshmallowStates.length - 1) {
+                roastLevel++;
+                updateMarshmallowState();
+            }
+        }, 1000);
+    }
+
+    function stopRoasting() {
+        clearInterval(roastingInterval);
+    }
+
+    function resetMarshmallow() {
+        roastLevel = 0;
+        updateMarshmallowState();
+    }
+
+    function updateMarshmallowState() {
+        const marshmallow = document.querySelector('#marshmallow');
+        marshmallow.style.backgroundImage = `url('${marshmallowStates[roastLevel]}')`;
+    }
+
+    // INITIALIZATION AND EVENT LISTENERS
+    document.addEventListener('DOMContentLoaded', () => {
+        // Create title
+        const title = document.createElement('h1');
+        title.className = 'title';
+        title.textContent = 'Daydream Lake';
+        document.body.insertBefore(title, document.querySelector('#cabin-scene'));
+
+        // Initialize paddles
+        createPaddles();
+
+        // Paddle drag and drop
+        document.querySelectorAll('.paddle').forEach(paddle => {
+            paddle.addEventListener('dragstart', e => {
+                e.dataTransfer.setData('text/plain', e.target.dataset.size);
+            });
+        });
+
+        document.querySelectorAll('.paddle-box').forEach(box => {
+            box.addEventListener('dragover', e => e.preventDefault());
+            box.addEventListener('drop', e => {
+                e.preventDefault();
+                const paddleSize = e.dataTransfer.getData('text/plain');
+                if (paddleSize === box.dataset.size) {
+                    const paddle = document.querySelector(`.paddle.${paddleSize}`);
+                    box.appendChild(paddle);
+                    paddle.style.position = 'relative';
+                    paddle.style.left = '50%';
+                    paddle.style.transform = 'translateX(-50%)';
+                }
+            });
+        });
+
+        // Marshmallow events
+        const marshmallow = document.querySelector('#marshmallow');
+        marshmallow.addEventListener('mousedown', startRoasting);
+        marshmallow.addEventListener('mouseup', stopRoasting);
+        marshmallow.addEventListener('mouseleave', stopRoasting);
+        marshmallow.addEventListener('click', () => {
+            if (roastLevel >= marshmallowStates.length - 1) {
+                resetMarshmallow();
             }
         });
     });
-
-    // Marshmallow events
-    const marshmallow = document.querySelector('#marshmallow');
-    marshmallow.addEventListener('mousedown', startRoasting);
-    marshmallow.addEventListener('mouseup', stopRoasting);
-    marshmallow.addEventListener('mouseleave', stopRoasting);
-    marshmallow.addEventListener('click', () => {
-        if (roastLevel >= marshmallowStates.length - 1) {
-            resetMarshmallow();
-        }
-    });
-});
 </script>
