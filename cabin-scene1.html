@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Cabin Scene</title>
+    <title>Daydream Lake</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
     <style>
         /* TITLE STYLING */
@@ -27,13 +27,53 @@
             font-family: Arial, sans-serif;
         }
 
-        /* Main scene container */
+        /* Scene styles */
+        .scene {
+            width: 800px;
+            height: 600px;
+            position: relative;
+            display: none;
+        }
+
+        .scene.active {
+            display: block;
+        }
+
+        /* Cabin scene specifics */
         #cabin-scene {
             position: relative;
             width: 800px;
             height: 600px;
             background: url('Cabinbackground.png') no-repeat center center;
             background-size: cover;
+        }
+
+        /* Pond scene specifics */
+        #pond-scene {
+            background: #4682B4;
+            /* Steel blue as placeholder */
+        }
+
+        /* Navigation arrows */
+        .arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 48px;
+            cursor: pointer;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        #left-arrow {
+            left: 20px;
+        }
+
+        #right-arrow {
+            right: 20px;
         }
 
         /* Interactive elements */
@@ -65,6 +105,43 @@
             background-size: contain;
         }
 
+        #lilypads {
+            width: 150px;
+            height: 150px;
+            left: 250px;
+            top: 300px;
+            background-color: #90EE90;
+            border-radius: 50%;
+        }
+
+        #pond {
+            width: 400px;
+            height: 300px;
+            background: #4682B4;
+            position: relative;
+            border: 2px solid #2F4F4F;
+            border-radius: 8px;
+        }
+
+        .frog {
+            width: 30px;
+            height: 30px;
+            background-color: #32CD32;
+            border-radius: 50%;
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .frog:hover {
+            transform: scale(1.1);
+        }
+
+        #frog-count {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
         /* Popup styling */
         .popup {
             display: none;
@@ -74,10 +151,22 @@
             transform: translate(-50%, -50%);
             background: white;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 8px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
             z-index: 1000;
             min-width: 300px;
+        }
+
+        /* Overlay for popup background */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
         }
 
         .close-popup {
@@ -90,15 +179,16 @@
 
         /* Paddle sorting game styles */
         .paddle-boxes {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+            display: flex;
+            justify-content: space-between;
             margin: 20px 0;
+            gap: 20px;
         }
 
         .paddle-box {
             border: 2px dashed #ccc;
-            padding: 15px;
+            flex: 1;
+            padding: 10px;
             min-height: 150px;
             position: relative;
         }
@@ -110,7 +200,7 @@
             padding: 15px;
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 10px;
         }
 
 
@@ -141,46 +231,27 @@
             align-items: center;
         }
 
-        /* Overlay for popup background */
-        .popup-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-
-
         .paddle {
-            width: 30px;
-            height: 120px;
-            background: url('paddle.png') no-repeat center;
-            background-size: contain;
+            width: 40px;
+            background-color: #8B4513;
             cursor: move;
             display: inline-block;
-            margin: 0 10px;
+            margin: 0 5px;
+            position: relative;
         }
 
-        .paddle.small {
-            width: 80px;
-            height: 170px;
-            background-image: url('PaddleSmall.png');
+        .paddle[data-size="small"] {
+            height: 50px;
         }
 
-        .paddle.medium {
-            width: 80px;
-            height: 170px;
-            background-image: url('PaddleMedium.png');
+        .paddle[data-size="medium"] {
+            height: 80px;
         }
 
-        .paddle.large {
-            width: 80px;
-            height: 170px;
-            background-image: url('PaddleBig.png');
+        .paddle[data-size="large"] {
+            height: 100px;
         }
+
 
         /* MARSHMALLOW STATES - Add after your existing styles */
         #marshmallow {
@@ -254,18 +325,28 @@
 </head>
 
 <body>
-    <!-- Main scene container -->
-    <div id="cabin-scene">
+    <!-- First Scene (Cabin) -->
+    <div id="cabin-scene" class="scene active">
         <div id="cabin" class="interactive-element"></div>
         <div id="campfire" class="interactive-element"></div>
     </div>
+
+    <!-- Second Scene (Pond) -->
+    <div id="pond-scene" class="scene">
+        <div id="lilypads" class="interactive-element"></div>
+    </div>
+
+    <!-- Navigation Arrows -->
+    <div id="left-arrow" class="arrow">‹</div>
+    <div id="right-arrow" class="arrow">›</div>
+
 
     <h1 class="page-title">Daydream Lake</h1>
 
     <!-- Popup overlay -->
     <div class="popup-overlay"></div>
 
-    <!-- Cabin popup with paddle sorting game -->
+    <!-- Cabin Popup -->
     <div id="cabin-popup" class="popup">
         <span class="close-popup">×</span>
         <h2>Sort the Paddles!</h2>
@@ -283,7 +364,7 @@
         <div class="unsorted-box"></div>
     </div>
 
-    <!-- Campfire popup with marshmallow roasting game -->
+    <!-- Campfire Popup -->
     <div id="campfire-popup" class="popup">
         <span class="close-popup">×</span>
         <h2>Roast some marshmallows!</h2>
@@ -292,7 +373,35 @@
         </div>
     </div>
 
+    <!-- Lilypads Popup -->
+    <div id="lilypads-popup" class="popup">
+        <span class="close-popup">×</span>
+        <h2>Catch Frogs</h2>
+        <div id="pond"></div>
+        <div>Frogs caught: <span id="frog-count">0</span></div>
+    </div>
+
     <script>
+
+        // Scene switching functionality
+        const scenes = ['cabin-scene', 'pond-scene'];
+        let currentSceneIndex = 0;
+
+        function switchScene(direction) {
+            document.getElementById(scenes[currentSceneIndex]).classList.remove('active');
+
+            if (direction === 'next') {
+                currentSceneIndex = (currentSceneIndex + 1) % scenes.length;
+            } else {
+                currentSceneIndex = (currentSceneIndex - 1 + scenes.length) % scenes.length;
+            }
+
+            document.getElementById(scenes[currentSceneIndex]).classList.add('active');
+        }
+
+        document.getElementById('left-arrow').addEventListener('click', () => switchScene('prev'));
+        document.getElementById('right-arrow').addEventListener('click', () => switchScene('next'));
+
         // Show popup function
         function showPopup(popupId) {
             document.querySelector('.popup-overlay').style.display = 'block';
@@ -373,6 +482,53 @@
         function updateMarshmallowState() {
             const marshmallow = document.querySelector('#marshmallow');
             marshmallow.style.backgroundImage = `url('${marshmallowStates[roastLevel]}')`;
+        }
+
+        // Frog game functionality
+        let frogGameInterval;
+        let frogsCount = 0;
+
+        function createFrog() {
+            const pond = document.getElementById('pond');
+            const frog = document.createElement('div');
+            frog.className = 'frog';
+
+            // Random position within the pond
+            const maxX = pond.clientWidth - 30;
+            const maxY = pond.clientHeight - 30;
+            frog.style.left = Math.random() * maxX + 'px';
+            frog.style.top = Math.random() * maxY + 'px';
+
+            frog.addEventListener('click', () => {
+                frog.remove();
+                frogsCount++;
+                document.getElementById('frog-count').textContent = frogsCount;
+            });
+
+            pond.appendChild(frog);
+
+            // Remove frog after 3 seconds if not caught
+            setTimeout(() => {
+                if (frog.parentNode === pond) {
+                    frog.remove();
+                }
+            }, 3000);
+        }
+
+        function startFrogGame() {
+            frogsCount = 0;
+            document.getElementById('frog-count').textContent = frogsCount;
+            frogGameInterval = setInterval(createFrog, 2000);
+        }
+
+        function stopFrogGame() {
+            if (frogGameInterval) {
+                clearInterval(frogGameInterval);
+            }
+            const pond = document.getElementById('pond');
+            while (pond.firstChild) {
+                pond.firstChild.remove();
+            }
         }
 
         // INITIALIZATION AND EVENT LISTENERS
