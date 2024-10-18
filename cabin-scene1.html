@@ -333,63 +333,75 @@
             cursor: pointer;
         }
 
+        #fishing-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+        }
+
+        #fishing-popup.active {
+            display: block;
+        }
+
         #fishing-game {
             width: 300px;
             height: 400px;
             position: relative;
             background-color: #add8e6;
             border: 2px solid #000;
+            margin: 20px auto;
         }
 
-        /* Fishing game catching bar */
-        #catching-bar {
-            width: 40px;
-            height: 250px;
-            background-color: #ddd;
-            position: absolute;
-            right: 50px;
-            top: 100px;
-        }
-
-        /* Fish target */
         #fish-target {
             width: 20px;
             height: 20px;
             background-color: orange;
             border-radius: 50%;
             position: absolute;
-            left: 50px;
+            left: 120px;
             top: 150px;
-            transition: top 0.2s ease;
+            /* Added initial position */
         }
 
-        /*Fishing game player bar */
+        #catching-bar {
+            width: 40px;
+            height: 300px;
+            background-color: #ddd;
+            position: absolute;
+            right: 80px;
+            top: 50px;
+            overflow: hidden;
+        }
+
         #player-bar {
             width: 100%;
             height: 60px;
             background-color: green;
             position: absolute;
             bottom: 0;
-            transition: height 0.1s ease;
+            transition: transform 0.1s ease;
         }
 
-        /*Fishing game progress meter */
         #progress-meter {
             width: 20px;
-            height: 300px;
-            background-color: #ddd;
+            height: 0%;
+            /* Start at 0% */
+            background-color: #4CAF50;
             position: absolute;
-            right: 10px;
-            top: 50px;
+            right: 20px;
+            bottom: 50px;
+            transition: height 0.3s ease;
         }
 
-        #progress-meter::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background-color: #4CAF50;
-            transition: height 0.3s ease;
+        .counter-container {
+            text-align: center;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -777,40 +789,45 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Get DOM elements
+            const fishingSpot = document.getElementById('fishing-spot');
+            const fishingPopup = document.getElementById('fishing-popup');
+            const popupOverlay = document.querySelector('.popup-overlay');
             const fishTarget = document.getElementById('fish-target');
             const playerBar = document.getElementById('player-bar');
             const progressMeter = document.getElementById('progress-meter');
             const fishCount = document.getElementById('fish-count');
+            const closeButton = fishingPopup.querySelector('.close-popup');
 
             let isHolding = false;
             let progress = 0;
             let fishCaught = 0;
+            let gameLoopRunning = false;
+
+            // Popup handling
+            fishingSpot.addEventListener('click', () => {
+                fishingPopup.classList.add('active');
+                popupOverlay.classList.add('active');
+                if (!gameLoopRunning) {
+                    gameLoop();
+                    gameLoopRunning = true;
+                }
+            });
+
+            closeButton.addEventListener('click', () => {
+                fishingPopup.classList.remove('active');
+                popupOverlay.classList.remove('active');
+            });
 
             // Fish movement
-            let fishDirection = 1; // To track movement direction
-            let lastFishY = 200; // Starting Y position for the fish
-
             function moveFish() {
-                const minY = 50;
-                const maxY = 350;
-
-                // Generate a new erratic position with a sine wave and random speed variations
-                const newY = lastFishY + fishDirection * (Math.sin(Date.now() / 300) * 15 + Math.random() * 10);
-
-                // Keep the fish within bounds
-                if (newY < minY || newY > maxY) {
-                    fishDirection *= -1; // Change direction when hitting the boundaries
-                } else {
-                    lastFishY = newY;
-                }
-
-                // Update fish position
-                fishTarget.style.top = `${lastFishY}px`;
+                const newPosition = 150 + Math.sin(Date.now() / 800) * 60;
+                fishTarget.style.top = `${newPosition}px`;
             }
 
-            // Bar movement
-            document.addEventListener('mousedown', () => {
-                if (document.getElementById('fishing-popup').classList.contains('active')) {
+            // Mouse controls
+            fishingPopup.addEventListener('mousedown', () => {
+                if (fishingPopup.classList.contains('active')) {
                     isHolding = true;
                 }
             });
@@ -819,63 +836,50 @@
                 isHolding = false;
             });
 
-            let playerSpeed = 5; // Speed of movement when holding
-
+            // Update player bar position
             function updatePlayerBar() {
-                // Move the bar up while holding the mouse
-                if (isHolding) {
-                    if (playerBar.offsetHeight < 300) {
-                        playerBar.style.height = `${playerBar.offsetHeight + playerSpeed}px`;
-                    }
-                }
-                // Move the bar down slowly when not holding the mouse
-                else if (playerBar.offsetHeight > 60) { // Keep a minimum bar height of 60
-                    playerBar.style.height = `${playerBar.offsetHeight - 3}px`; // Slow descent when not held
+                const currentHeight = parseInt(playerBar.style.height) || 60;
+
+                if (isHolding && currentHeight < 300) {
+                    playerBar.style.height = `${currentHeight + 3}px`;
+                } else if (!isHolding && currentHeight > 0) {
+                    playerBar.style.height = `${currentHeight - 2}px`;
                 }
             }
 
-            // Update the fish count when a fish is caught
+            // Check if fish is caught
             function checkCatch() {
-                const fishPosition = fishTarget.offsetTop; // Current position of the fish
-                const barPosition = 350 - playerBar.offsetHeight; // Position of the top of the player bar
-                const barHeight = playerBar.offsetHeight; // Height of the player bar
+                const fishPosition = fishTarget.offsetTop;
+                const barPosition = 300 - parseInt(playerBar.style.height || '60');
+                const barHeight = parseInt(playerBar.style.height || '60');
 
-                // Check if the fish is within the player bar's range
                 if (fishPosition >= barPosition && fishPosition <= barPosition + barHeight) {
-                    progress += 2; // Increase progress if the fish is within the green bar
+                    progress = Math.min(100, progress + 1);
+                    progressMeter.style.height = `${progress}%`;
                 } else {
-                    progress = Math.max(0, progress - 1); // Decrease progress if the fish is outside
+                    progress = Math.max(0, progress - 0.5);
+                    progressMeter.style.height = `${progress}%`;
                 }
 
-                // Update the progress meter
-                progressMeter.style.height = `${progress}%`;
-
-                // Reset progress and increase fish count when progress reaches 100%
                 if (progress >= 100) {
                     fishCaught++;
-                    document.getElementById('fish-count').textContent = fishCaught;
+                    fishCount.textContent = fishCaught;
                     progress = 0;
-                    progressMeter.style.height = '0%'; // Reset the progress meter
+                    progressMeter.style.height = '0%';
                 }
             }
 
-            // Fishing Game loop
+            // Main game loop
             function gameLoop() {
                 if (fishingPopup.classList.contains('active')) {
-                    moveFish();      // Move the fish
-                    updatePlayerBar();  // Move the player bar based on mouse actions
-                    checkCatch();   // Check if the player bar is over the fish
+                    moveFish();
+                    updatePlayerBar();
+                    checkCatch();
+                    requestAnimationFrame(gameLoop);
+                } else {
+                    gameLoopRunning = false;
                 }
-                requestAnimationFrame(gameLoop); // Keep looping the game
             }
-
-            // Initialize game
-            gameLoop();
-
-            // Add click handler for fishing spot
-            document.getElementById('fishing-spot').addEventListener('click', () => {
-                showPopup('fishing-popup'); // Calls the function to show the fishing popup
-            });
         });
 
 
