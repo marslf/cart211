@@ -402,31 +402,46 @@
         document.getElementById('left-arrow').addEventListener('click', () => switchScene('prev'));
         document.getElementById('right-arrow').addEventListener('click', () => switchScene('next'));
 
-        // Show popup function
+        // Popup functionality
         function showPopup(popupId) {
-            document.querySelector('.popup-overlay').style.display = 'block';
-            document.querySelector(`#${popupId}`).style.display = 'block';
+            const popup = document.getElementById(popupId);
+            const overlay = document.querySelector('.popup-overlay');
+
+            if (popup) {
+                popup.style.display = 'block';
+                overlay.style.display = 'block';
+
+                if (popupId === 'lilypads-popup') {
+                    startFrogGame();
+                }
+            }
         }
 
-        // Hide popup function
-        function hidePopup() {
-            document.querySelector('.popup-overlay').style.display = 'none';
-            document.querySelectorAll('.popup').forEach(popup => {
-                popup.style.display = 'none';
+        function hidePopup(popup) {
+            const overlay = document.querySelector('.popup-overlay');
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+
+            if (popup.id === 'lilypads-popup') {
+                stopFrogGame();
+            }
+        }
+
+        // Setup interactive elements
+        document.querySelectorAll('.interactive-element').forEach(element => {
+            element.addEventListener('click', () => {
+                const popupId = `${element.id}-popup`;
+                showPopup(popupId);
             });
-        }
-
-        // Add click listeners to interactive elements
-        document.querySelector('#cabin').addEventListener('click', () => showPopup('cabin-popup'));
-        document.querySelector('#campfire').addEventListener('click', () => showPopup('campfire-popup'));
-
-        // Add click listeners to close buttons
-        document.querySelectorAll('.close-popup').forEach(button => {
-            button.addEventListener('click', hidePopup);
         });
 
-        // Close popup when clicking overlay
-        document.querySelector('.popup-overlay').addEventListener('click', hidePopup);
+        // Setup close buttons
+        document.querySelectorAll('.close-popup').forEach(button => {
+            button.addEventListener('click', () => {
+                const popup = button.closest('.popup');
+                hidePopup(popup);
+            });
+        });
 
 
         // PADDLE SORTING GAME
