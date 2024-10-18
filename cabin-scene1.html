@@ -789,7 +789,6 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Get DOM elements
             const fishingSpot = document.getElementById('fishing-spot');
             const fishingPopup = document.getElementById('fishing-popup');
             const popupOverlay = document.querySelector('.popup-overlay');
@@ -803,6 +802,8 @@
             let progress = 0;
             let fishCaught = 0;
             let gameLoopRunning = false;
+            let barPosition = 0; // Track bar position
+
 
             // Popup handling
             fishingSpot.addEventListener('click', () => {
@@ -838,22 +839,24 @@
 
             // Update player bar position
             function updatePlayerBar() {
-                const currentHeight = parseInt(playerBar.style.height) || 60;
+                const maxPosition = 240;
 
-                if (isHolding && currentHeight < 300) {
-                    playerBar.style.height = `${currentHeight + 3}px`;
-                } else if (!isHolding && currentHeight > 0) {
-                    playerBar.style.height = `${currentHeight - 2}px`;
+                if (isHolding && barPosition < maxPosition) {
+                    barPosition = Math.min(maxPosition, barPosition + 3);
+                } else if (!isHolding && barPosition > 0) {
+                    barPosition = Math.max(0, barPosition - 2);
                 }
+
+                playerBar.style.transform = `translateY(-${barPosition}px)`;
             }
 
             // Check if fish is caught
             function checkCatch() {
-                const fishPosition = fishTarget.offsetTop;
-                const barPosition = 300 - parseInt(playerBar.style.height || '60');
-                const barHeight = parseInt(playerBar.style.height || '60');
+                const fishPosition = fishTarget.offsetTop - 50; 
+                const barBottom = 300 - barPosition;
+                const barTop = barBottom - 60; 
 
-                if (fishPosition >= barPosition && fishPosition <= barPosition + barHeight) {
+                if (fishPosition >= barTop && fishPosition <= barBottom) {
                     progress = Math.min(100, progress + 1);
                     progressMeter.style.height = `${progress}%`;
                 } else {
