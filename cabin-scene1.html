@@ -179,28 +179,62 @@
 
         /* Paddle sorting game styles */
         .paddle-boxes {
-            display: flex;
-            justify-content: space-between;
-            margin: 20px 0;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
 
         .paddle-box {
+            text-align: center;
+        }
+
+        .drop-zone {
             border: 2px dashed #ccc;
-            flex: 1;
-            padding: 10px;
-            min-height: 150px;
-            position: relative;
+            min-height: 200px;
+            margin-top: 0.5rem;
+            transition: background-color 0.3s;
+        }
+
+        .drop-zone.drag-over {
+            background-color: rgba(0, 0, 255, 0.1);
+            border-color: blue;
+        }
+
+        .drop-zone.correct {
+            background-color: rgba(0, 255, 0, 0.1);
+            border-color: green;
+        }
+
+        .drop-zone.incorrect {
+            background-color: rgba(255, 0, 0, 0.1);
+            border-color: red;
         }
 
         .unsorted-box {
-            border: 2px dashed #ccc;
-            min-height: 100px;
-            margin-top: 20px;
-            padding: 15px;
             display: flex;
-            justify-content: center;
-            gap: 10px;
+            justify-content: space-between;
+            width: 100%;
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        .paddle {
+            width: 80px;
+            height: 20px;
+            margin: 0 5px;
+            background-color: #ccc;
+            border: 1px solid #703a07;
+            cursor: grab;
+        }
+
+        .paddle.large {
+            width: 120px;
+            /* Adjust this width to fit your design */
+        }
+
+        .paddle:hover {
+            transform: scale(1.05);
         }
 
 
@@ -239,19 +273,6 @@
             margin: 0 5px;
             position: relative;
         }
-
-        .paddle[data-size="small"] {
-            height: 50px;
-        }
-
-        .paddle[data-size="medium"] {
-            height: 80px;
-        }
-
-        .paddle[data-size="large"] {
-            height: 100px;
-        }
-
 
         /* MARSHMALLOW STATES - Add after your existing styles */
         #marshmallow {
@@ -432,19 +453,28 @@
     <!-- Cabin Popup -->
     <div id="cabin-popup" class="popup">
         <span class="close-popup">×</span>
+
         <h2>Sort the Paddles!</h2>
+
         <div class="paddle-boxes">
             <div class="paddle-box" data-size="small">
                 <h3>Small</h3>
+                <div class="drop-zone" data-size="small"></div>
             </div>
+
             <div class="paddle-box" data-size="medium">
                 <h3>Medium</h3>
+                <div class="drop-zone" data-size="medium"></div>
             </div>
+
             <div class="paddle-box" data-size="large">
                 <h3>Large</h3>
+                <div class="drop-zone" data-size="large"></div>
             </div>
         </div>
-        <div class="unsorted-box"></div>
+
+        <div class="unsorted-box" id="unsorted-paddles">
+        </div>
     </div>
 
     <!-- Campfire Popup -->
@@ -543,25 +573,76 @@
 
 
         // PADDLE SORTING GAME
-        const paddles = [
-            { size: 'small', left: '10%' },
-            { size: 'medium', left: '40%' },
-            { size: 'large', left: '70%' }
-        ];
+        document.addEventListener('DOMContentLoaded', function () {
+            // Generate initial paddles
+            const paddles = [
+                { id: 1, size: 'small', width: 40, height: 120 },
+                { id: 2, size: 'medium', width: 50, height: 150 },
+                { id: 3, size: 'large', width: 60, height: 180 },
+                { id: 4, size: 'small', width: 40, height: 120 },
+                { id: 5, size: 'medium', width: 50, height: 150 },
+                { id: 6, size: 'large', width: 60, height: 180 }
+            ];
 
-        function createPaddles() {
-            const unsortedBox = document.querySelector('.unsorted-box');
-            paddles.forEach((paddle) => {
+            const unsortedBox = document.getElementById('unsorted-paddles');
+
+            // Create and add paddles to unsorted box
+            paddles.forEach(paddle => {
                 const paddleElement = document.createElement('div');
-                paddleElement.className = `paddle ${paddle.size}`;
+                paddleElement.className = 'paddle';
                 paddleElement.draggable = true;
                 paddleElement.dataset.size = paddle.size;
-                paddleElement.style.left = paddle.left;
-                paddleElement.style.top = '50%';
-                paddleElement.style.transform = 'translateY(-50%)';
+                paddleElement.style.width = `${paddle.width}px`;
+                paddleElement.style.height = `${paddle.height}px`;
+
+                // Add drag event listeners
+                paddleElement.addEventListener('dragstart', handleDragStart);
                 unsortedBox.appendChild(paddleElement);
             });
-        }
+
+            // Drag and drop functionality
+            function handleDragStart(e) {
+                e.dataTransfer.setData('text/plain', e.target.dataset.size);
+                e.target.classList.add('dragging');
+            }
+
+            // Add drop zone event listeners
+            const dropZones = document.querySelectorAll('.drop-zone');
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('dragleave', handleDragLeave);
+                zone.addEventListener('drop', handleDrop);
+            });
+
+            function handleDragOver(e) {
+                e.preventDefault();
+                this.classList.add('drag-over');
+            }
+
+            function handleDragLeave(e) {
+                this.classList.remove('drag-over');
+            }
+
+            function handleDrop(e) {
+                e.preventDefault();
+                const paddleSize = e.dataTransfer.getData('text/plain');
+                const targetSize = this.dataset.size;
+
+                // Check if the paddle is dropped in the correct zone
+                if (paddleSize === targetSize) {
+                    const paddle = document.querySelector('.paddle.dragging');
+                    this.appendChild(paddle);
+                    this.classList.add('correct');
+                    setTimeout(() => this.classList.remove('correct'), 1000);
+                } else {
+                    this.classList.add('incorrect');
+                    setTimeout(() => this.classList.remove('incorrect'), 1000);
+                }
+
+                this.classList.remove('drag-over');
+                document.querySelector('.paddle.dragging').classList.remove('dragging');
+            }
+        });
 
         // MARSHMALLOW ROASTING GAME
         const marshmallowStates = [
@@ -685,9 +766,6 @@
             });
         });
 
-    </script>
-
-    <script>
         document.addEventListener('DOMContentLoaded', function () {
             function initializePaddleGame() {
                 const unsortedBox = document.querySelector('.unsorted-box');
@@ -852,9 +930,9 @@
 
             // Check if fish is caught
             function checkCatch() {
-                const fishPosition = fishTarget.offsetTop - 50; 
+                const fishPosition = fishTarget.offsetTop - 50;
                 const barBottom = 300 - barPosition;
-                const barTop = barBottom - 60; 
+                const barTop = barBottom - 60;
 
                 if (fishPosition >= barTop && fishPosition <= barBottom) {
                     progress = Math.min(100, progress + 1);
