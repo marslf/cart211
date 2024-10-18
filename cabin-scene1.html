@@ -48,8 +48,8 @@
             background-size: cover;
         }
 
-        /* Pond scene specifics */
-        #pond-scene {
+        /* Lake scene specifics */
+        #lake-scene {
             background: #4682B4;
             /* Steel blue as placeholder */
         }
@@ -114,7 +114,7 @@
             border-radius: 50%;
         }
 
-        #pond {
+        #lake {
             width: 400px;
             height: 300px;
             background: #4682B4;
@@ -321,6 +321,76 @@
             font-size: 24px;
             text-align: center;
         }
+
+        #fishing-spot {
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+            right: 100px;
+            top: 50%;
+            cursor: pointer;
+        }
+
+        #fishing-game {
+            width: 300px;
+            height: 400px;
+            position: relative;
+            background-color: #add8e6;
+            border: 2px solid #000;
+        }
+
+        /* Fishing game catching bar */
+        #catching-bar {
+            width: 40px;
+            height: 250px;
+            background-color: #ddd;
+            position: absolute;
+            right: 50px;
+            top: 100px;
+        }
+
+        /* Fish target */
+        #fish-target {
+            width: 20px;
+            height: 20px;
+            background-color: orange;
+            border-radius: 50%;
+            position: absolute;
+            left: 50px;
+            top: 150px;
+            transition: top 0.2s ease;
+        }
+
+        /*Fishing game player bar */
+        #player-bar {
+            width: 100%;
+            height: 60px;
+            background-color: green;
+            position: absolute;
+            bottom: 0;
+            transition: height 0.1s ease;
+        }
+
+        /*Fishing game progress meter */
+        #progress-meter {
+            width: 20px;
+            height: 300px;
+            background-color: #ddd;
+            position: absolute;
+            right: 10px;
+            top: 50px;
+        }
+
+        #progress-meter::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: #4CAF50;
+            transition: height 0.3s ease;
+        }
     </style>
 </head>
 
@@ -331,9 +401,10 @@
         <div id="campfire" class="interactive-element"></div>
     </div>
 
-    <!-- Second Scene (Pond) -->
-    <div id="pond-scene" class="scene">
+    <!-- Second Scene (lake) -->
+    <div id="lake-scene" class="scene">
         <div id="lilypads" class="interactive-element"></div>
+        <div id="fishing-spot" class="interactive-element"></div>
     </div>
 
     <!-- Navigation Arrows -->
@@ -377,14 +448,29 @@
     <div id="lilypads-popup" class="popup">
         <span class="close-popup">×</span>
         <h2>Catch Frogs</h2>
-        <div id="pond"></div>
+        <div id="lake"></div>
         <div>Frogs caught: <span id="frog-count">0</span></div>
     </div>
+
+    <!-- Fishing Popup -->
+    <div id="fishing-popup" class="popup">
+        <span class="close-popup">×</span>
+        <h2>Gone fishing!</h2>
+        <div id="fishing-game">
+            <div id="fish-target"></div>
+            <div id="catching-bar">
+                <div id="player-bar"></div>
+            </div>
+            <div id="progress-meter"></div>
+            <div>Fish caught: <span id="fish-count">0</span></div>
+        </div>
+    </div>
+
 
     <script>
 
         // Scene switching functionality
-        const scenes = ['cabin-scene', 'pond-scene'];
+        const scenes = ['cabin-scene', 'lake-scene'];
         let currentSceneIndex = 0;
 
         function switchScene(direction) {
@@ -504,13 +590,13 @@
         let frogsCount = 0;
 
         function createFrog() {
-            const pond = document.getElementById('pond');
+            const lake = document.getElementById('lake');
             const frog = document.createElement('div');
             frog.className = 'frog';
 
-            // Random position within the pond
-            const maxX = pond.clientWidth - 30;
-            const maxY = pond.clientHeight - 30;
+            // Random position within the lake
+            const maxX = lake.clientWidth - 30;
+            const maxY = lake.clientHeight - 30;
             frog.style.left = Math.random() * maxX + 'px';
             frog.style.top = Math.random() * maxY + 'px';
 
@@ -520,11 +606,11 @@
                 document.getElementById('frog-count').textContent = frogsCount;
             });
 
-            pond.appendChild(frog);
+            lake.appendChild(frog);
 
             // Remove frog after 3 seconds if not caught
             setTimeout(() => {
-                if (frog.parentNode === pond) {
+                if (frog.parentNode === lake) {
                     frog.remove();
                 }
             }, 3000);
@@ -540,9 +626,9 @@
             if (frogGameInterval) {
                 clearInterval(frogGameInterval);
             }
-            const pond = document.getElementById('pond');
-            while (pond.firstChild) {
-                pond.firstChild.remove();
+            const lake = document.getElementById('lake');
+            while (lake.firstChild) {
+                lake.firstChild.remove();
             }
         }
 
@@ -689,6 +775,110 @@
             // Initial setup
             initializePaddleGame();
         });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const fishTarget = document.getElementById('fish-target');
+            const playerBar = document.getElementById('player-bar');
+            const progressMeter = document.getElementById('progress-meter');
+            const fishCount = document.getElementById('fish-count');
+
+            let isHolding = false;
+            let progress = 0;
+            let fishCaught = 0;
+
+            // Fish movement
+            let fishDirection = 1; // To track movement direction
+            let lastFishY = 200; // Starting Y position for the fish
+
+            function moveFish() {
+                const minY = 50;
+                const maxY = 350;
+
+                // Generate a new erratic position with a sine wave and random speed variations
+                const newY = lastFishY + fishDirection * (Math.sin(Date.now() / 300) * 15 + Math.random() * 10);
+
+                // Keep the fish within bounds
+                if (newY < minY || newY > maxY) {
+                    fishDirection *= -1; // Change direction when hitting the boundaries
+                } else {
+                    lastFishY = newY;
+                }
+
+                // Update fish position
+                fishTarget.style.top = `${lastFishY}px`;
+            }
+
+            // Bar movement
+            document.addEventListener('mousedown', () => {
+                if (document.getElementById('fishing-popup').classList.contains('active')) {
+                    isHolding = true;
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isHolding = false;
+            });
+
+            let playerSpeed = 5; // Speed of movement when holding
+
+            function updatePlayerBar() {
+                // Move the bar up while holding the mouse
+                if (isHolding) {
+                    if (playerBar.offsetHeight < 300) {
+                        playerBar.style.height = `${playerBar.offsetHeight + playerSpeed}px`;
+                    }
+                }
+                // Move the bar down slowly when not holding the mouse
+                else if (playerBar.offsetHeight > 60) { // Keep a minimum bar height of 60
+                    playerBar.style.height = `${playerBar.offsetHeight - 3}px`; // Slow descent when not held
+                }
+            }
+
+            // Update the fish count when a fish is caught
+            function checkCatch() {
+                const fishPosition = fishTarget.offsetTop; // Current position of the fish
+                const barPosition = 350 - playerBar.offsetHeight; // Position of the top of the player bar
+                const barHeight = playerBar.offsetHeight; // Height of the player bar
+
+                // Check if the fish is within the player bar's range
+                if (fishPosition >= barPosition && fishPosition <= barPosition + barHeight) {
+                    progress += 2; // Increase progress if the fish is within the green bar
+                } else {
+                    progress = Math.max(0, progress - 1); // Decrease progress if the fish is outside
+                }
+
+                // Update the progress meter
+                progressMeter.style.height = `${progress}%`;
+
+                // Reset progress and increase fish count when progress reaches 100%
+                if (progress >= 100) {
+                    fishCaught++;
+                    document.getElementById('fish-count').textContent = fishCaught;
+                    progress = 0;
+                    progressMeter.style.height = '0%'; // Reset the progress meter
+                }
+            }
+
+            // Fishing Game loop
+            function gameLoop() {
+                if (fishingPopup.classList.contains('active')) {
+                    moveFish();      // Move the fish
+                    updatePlayerBar();  // Move the player bar based on mouse actions
+                    checkCatch();   // Check if the player bar is over the fish
+                }
+                requestAnimationFrame(gameLoop); // Keep looping the game
+            }
+
+            // Initialize game
+            gameLoop();
+
+            // Add click handler for fishing spot
+            document.getElementById('fishing-spot').addEventListener('click', () => {
+                showPopup('fishing-popup'); // Calls the function to show the fishing popup
+            });
+        });
+
+
     </script>
 
 </body>
