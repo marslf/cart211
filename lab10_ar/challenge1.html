@@ -36,9 +36,13 @@
     <button id="startButton" onclick="startAR()">Start AR Experience</button>
     <!-- AR scene setup, hidden initially -->
     <a-scene embedded arjs style="display: none;" id="ar-scene">
+        <!-- Hiro Marker -->
         <a-marker preset="hiro">
-<a-box id="box" position="0 0.5 0" color="blue" scale="0.5 0.5 0.5" onclick="changeBox()"></a-box>
-
+            <a-box position="0 0.5 0" color="blue" scale="0.5 0.5 0.5"></a-box>
+        </a-marker>
+        <!-- Kanji Marker -->
+        <a-marker preset="kanji">
+            <a-sphere position="0 0.5 0" color="red" radius="0.3"></a-sphere>
         </a-marker>
         <a-entity camera></a-entity>
     </a-scene>

@@ -37,7 +37,7 @@
     <!-- AR scene setup, hidden initially -->
     <a-scene embedded arjs style="display: none;" id="ar-scene">
         <a-marker preset="hiro">
-<a-box id="box" position="0 0.5 0" color="blue" scale="0.5 0.5 0.5" onclick="changeBox()"></a-box>
+            <a-box id="box" position="0 0.5 0" color="purple" scale="0.5 0.5 0.5" mousePressed="changeBox()"></a-box>
 
         </a-marker>
         <a-entity camera></a-entity>
@@ -62,6 +62,14 @@
                 }
             }, 1000);
         }
+
+        function changeBox() {
+            const box = document.getElementById('box');
+            box.setAttribute('color', 'blue');
+            box.setAttribute('scale', '0.7 0.7 0.7');
+        }
+
+
     </script>
 </body>
 
