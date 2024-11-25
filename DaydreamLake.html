@@ -164,17 +164,22 @@
 
         #lake {
             width: 400px;
-            height: 300px;
-            background: #4682B4;
+            height: 400px;
+            background-image: url('FrogGameBackground.png');
+            background-size: cover;
             position: relative;
             border: 2px solid #2F4F4F;
             border-radius: 8px;
         }
 
         .frog {
-            width: 30px;
-            height: 30px;
-            background-color: #32CD32;
+            width: 40px;
+            height: 40px;
+            background-color: transparent;
+            background-image: url('frog.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             border-radius: 50%;
             position: absolute;
             cursor: pointer;
@@ -314,7 +319,7 @@
         #marshmallow {
             width: 200px;
             height: 200px;
-            background: url('Marshmallow1.png') no-repeat center center;
+            background: url('marshmallow-state1.png') no-repeat center center;
             background-size: contain;
             position: relative;
             cursor: pointer;
@@ -337,12 +342,36 @@
             align-items: center;
         }
 
-
-
-        /* MARSHMALLOW STATES - Add after your existing styles */
-        #marshmallow {
+        .interactive-marshmallow {
             cursor: pointer;
-            transition: background-image 0.3s;
+            transition: transform 0.1s;
+            max-width: 50px;
+        }
+
+        .interactive-marshmallow:hover {
+            transform: scale(1.05);
+        }
+
+        #roasting-info {
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        /*Marshmallow minigame restart button*/
+        .restart-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .restart-btn:hover {
+            background-color: #45a049;
         }
 
 
@@ -401,13 +430,19 @@
             position: relative;
             background-color: #add8e6;
             border: 2px solid #000;
-            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            gap: 20px;
         }
 
         #fish-target {
-            width: 20px;
-            height: 20px;
-            background-color: orange;
+            width: 40px;
+            height: 40px;
+            background-color: transparent;
+            background-image: url('fish.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             border-radius: 50%;
             position: absolute;
             left: 120px;
@@ -576,10 +611,20 @@
         <div id="campfire-popup" class="popup">
             <span class="close-popup">×</span>
             <h2>Roast some marshmallows!</h2>
+
             <div class="fire-container">
-                <div id="marshmallow"></div>
+                <img id="marshmallow" src="marshmallow-state1.png" alt="Marshmallow" class="interactive-marshmallow">
             </div>
+
+            <div id="roasting-info">
+                Clicks: <span id="click-counter">0</span>
+            </div>
+
+            <button id="restart-roasting" class="restart-btn">
+                New Marshmallow
+            </button>
         </div>
+
 
         <!-- Lilypads Popup -->
         <div id="lilypads-popup" class="popup">
@@ -729,38 +774,68 @@
 
 
         // MARSHMALLOW ROASTING GAME
-        const marshmallowStates = [
-            'Marshmallow1.png',
-            'Marshmallow2.png',
-            'Marshmallow3.png',
-            'Marshmallow4.png'
-        ];
+        const marshmallowGame = {
+            clicks: 0,
+            marshmallowStates: {
+                state1: { maxClicks: 5, image: 'marshmallow-state1.png' },
+                state2: { maxClicks: 9, image: 'marshmallow-state2.png' },
+                state3: { maxClicks: 15, image: 'marshmallow-state3.png' },
+                state4: { maxClicks: 18, image: 'marshmallow-state4.png' }
+            },
 
-        let roastingInterval;
-        let roastLevel = 0;
+            init() {
+                this.marshmallow = document.getElementById('marshmallow');
+                this.clickCounter = document.getElementById('click-counter');
+                this.restartButton = document.getElementById('restart-roasting');
 
-        function startRoasting() {
-            roastingInterval = setInterval(() => {
-                if (roastLevel < marshmallowStates.length - 1) {
-                    roastLevel++;
-                    updateMarshmallowState();
+                // Add click handlers
+                this.marshmallow.addEventListener('click', () => this.handleRoasting());
+                this.restartButton.addEventListener('click', () => this.resetGame());
+
+                // Initialize game state
+                this.resetGame();
+            },
+
+            handleRoasting() {
+                this.clicks++;
+                this.clickCounter.textContent = this.clicks;
+
+                // Update marshmallow state based on clicks
+                if (this.clicks <= this.marshmallowStates.state1.maxClicks) {
+                    this.marshmallow.src = this.marshmallowStates.state1.image;
+                } else if (this.clicks <= this.marshmallowStates.state2.maxClicks) {
+                    this.marshmallow.src = this.marshmallowStates.state2.image;
+                } else if (this.clicks <= this.marshmallowStates.state3.maxClicks) {
+                    this.marshmallow.src = this.marshmallowStates.state3.image;
+                } else if (this.clicks <= this.marshmallowStates.state4.maxClicks) {
+                    this.marshmallow.src = this.marshmallowStates.state4.image;
                 }
-            }, 1000);
-        }
 
-        function stopRoasting() {
-            clearInterval(roastingInterval);
-        }
+                // Optional: Add a little bounce animation on click
+                this.marshmallow.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.marshmallow.style.transform = 'scale(1)';
+                }, 100);
+            },
 
-        function resetMarshmallow() {
-            roastLevel = 0;
-            updateMarshmallowState();
-        }
+            resetGame() {
+                this.clicks = 0;
+                this.clickCounter.textContent = this.clicks;
+                this.marshmallow.src = this.marshmallowStates.state1.image;
+            }
+        };
 
-        function updateMarshmallowState() {
-            const marshmallow = document.querySelector('#marshmallow');
-            marshmallow.style.backgroundImage = `url('${marshmallowStates[roastLevel]}')`;
-        }
+        // Initialize the game when the campfire popup opens
+        document.getElementById('campfire').addEventListener('click', () => {
+            // Assuming you have popup handling code elsewhere
+            marshmallowGame.init();
+        });
+
+        // Add this to your popup close handler
+        document.querySelector('#campfire-popup .close-popup').addEventListener('click', () => {
+            marshmallowGame.resetGame();
+        });
+
 
         // Frog game functionality
         let frogGameInterval;
