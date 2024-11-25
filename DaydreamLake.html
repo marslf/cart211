@@ -29,14 +29,59 @@
 
         /* Scene styles */
         .scene {
+            display: none;
             width: 800px;
             height: 600px;
             position: relative;
-            display: none;
+            background-color: #b3edff;
         }
 
         .scene.active {
             display: block;
+        }
+
+        .screen {
+            display: none;
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background-size: contain;
+            background-position: center;
+            background-color: #b3edff;
+        }
+
+        /* Title and intro scene */
+        #title-screen {
+            display: block;
+            /* This one starts visible */
+            background-image: url('titleScreen.png');
+            cursor: pointer;
+        }
+
+        #instructions-screen {
+            background-image: url('introScreen.png');
+        }
+
+
+        .start-button {
+            position: absolute;
+            bottom: 15px;
+            left: 120px;
+            transform: translateX(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .start-button img {
+            width: 200px;
+            height: auto;
+        }
+
+        #main-content {
+            display: none;
+            /* Hide initially */
         }
 
         /* Cabin scene specifics */
@@ -45,7 +90,7 @@
             width: 800px;
             height: 600px;
             background: url('Cabinbackground.png') no-repeat center center;
-            background-size: cover;
+            background-size: contain;
         }
 
         /* Lake scene specifics */
@@ -54,7 +99,7 @@
             width: 800px;
             height: 600px;
             background: url('Lakebackground.png') no-repeat center center;
-            background-size: cover;
+            background-size: contain;
         }
 
         /* Navigation arrows */
@@ -424,92 +469,178 @@
             text-align: center;
             margin-top: 10px;
         }
+
+        .audio-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .audio-control:hover {
+            background: rgba(255, 255, 255, 1);
+        }
     </style>
 </head>
 
 <body>
-    <!-- First Scene (Cabin) -->
-    <div id="cabin-scene" class="scene active">
-        <div id="cabin" class="interactive-element"></div>
-        <div id="campfire" class="interactive-element"></div>
+
+    <!-- Title and Instruction Screne -->
+    <div id="title-screen" class="screen"></div>
+
+    <div id="instructions-screen" class="screen">
+        <button class="start-button">
+            <img src="startButton.png" alt="Start Game">
+        </button>
     </div>
 
-    <!-- Second Scene (lake) -->
-    <div id="lake-scene" class="scene">
-        <div id="lilypads" class="interactive-element"></div>
-        <div id="fishing-spot" class="interactive-element"></div>
-    </div>
 
-    <!-- Navigation Arrows -->
-    <div id="left-arrow" class="arrow">‹</div>
-    <div id="right-arrow" class="arrow">›</div>
+    <div id="main-content">
+        <!-- First Scene (Cabin) -->
+        <div id="cabin-scene" class="scene active">
+            <div id="cabin" class="interactive-element"></div>
+            <div id="campfire" class="interactive-element"></div>
+        </div>
 
-    <!-- Popup overlay -->
-    <div class="popup-overlay"></div>
+        <!-- Second Scene (lake) -->
+        <div id="lake-scene" class="scene">
+            <div id="lilypads" class="interactive-element"></div>
+            <div id="fishing-spot" class="interactive-element"></div>
+        </div>
 
-    <!-- Cabin Popup -->
-    <div id="cabin-popup" class="popup">
-        <span class="close-popup">×</span>
+        <!-- Navigation Arrows -->
+        <div id="left-arrow" class="arrow">‹</div>
+        <div id="right-arrow" class="arrow">›</div>
 
-        <h2>Sort the Paddles!</h2>
+        <!-- Popup overlay -->
+        <div class="popup-overlay"></div>
 
-        <div class="paddle-boxes">
-            <div class="paddle-box" data-size="small">
-                <h3>Small</h3>
-                <div class="drop-zone" data-size="small"></div>
+        <!-- Cabin Popup -->
+        <div id="cabin-popup" class="popup">
+            <span class="close-popup">×</span>
+
+            <h2>Sort the Paddles!</h2>
+
+            <div class="paddle-boxes">
+                <div class="paddle-box" data-size="small">
+                    <h3>Small</h3>
+                    <div class="drop-zone" data-size="small"></div>
+                </div>
+
+                <div class="paddle-box" data-size="medium">
+                    <h3>Medium</h3>
+                    <div class="drop-zone" data-size="medium"></div>
+                </div>
+
+                <div class="paddle-box" data-size="large">
+                    <h3>Large</h3>
+                    <div class="drop-zone" data-size="large"></div>
+                </div>
             </div>
 
-            <div class="paddle-box" data-size="medium">
-                <h3>Medium</h3>
-                <div class="drop-zone" data-size="medium"></div>
-            </div>
-
-            <div class="paddle-box" data-size="large">
-                <h3>Large</h3>
-                <div class="drop-zone" data-size="large"></div>
+            <div class="unsorted-box" id="unsorted-paddles">
             </div>
         </div>
 
-        <div class="unsorted-box" id="unsorted-paddles">
-        </div>
-    </div>
-
-    <!-- Campfire Popup -->
-    <div id="campfire-popup" class="popup">
-        <span class="close-popup">×</span>
-        <h2>Roast some marshmallows!</h2>
-        <div class="fire-container">
-            <div id="marshmallow"></div>
-        </div>
-    </div>
-
-    <!-- Lilypads Popup -->
-    <div id="lilypads-popup" class="popup">
-        <span class="close-popup">×</span>
-        <h2>Catch Frogs</h2>
-        <div id="lake"></div>
-        <div>Frogs caught: <span id="frog-count">0</span></div>
-    </div>
-
-    <!-- Fishing Popup -->
-    <div id="fishing-popup" class="popup">
-        <span class="close-popup">×</span>
-        <h2>Gone fishing!</h2>
-        <div id="fishing-game">
-            <div id="fish-target"></div>
-            <div id="catching-bar">
-                <div id="player-bar"></div>
+        <!-- Campfire Popup -->
+        <div id="campfire-popup" class="popup">
+            <span class="close-popup">×</span>
+            <h2>Roast some marshmallows!</h2>
+            <div class="fire-container">
+                <div id="marshmallow"></div>
             </div>
-            <div id="progress-meter"></div>
-            <div>Fish caught: <span id="fish-count">0</span></div>
+        </div>
+
+        <!-- Lilypads Popup -->
+        <div id="lilypads-popup" class="popup">
+            <span class="close-popup">×</span>
+            <h2>Catch Frogs</h2>
+            <div id="lake"></div>
+            <div>Frogs caught: <span id="frog-count">0</span></div>
+        </div>
+
+        <!-- Fishing Popup -->
+        <div id="fishing-popup" class="popup">
+            <span class="close-popup">×</span>
+            <h2>Gone fishing!</h2>
+            <div id="fishing-game">
+                <div id="fish-target"></div>
+                <div id="catching-bar">
+                    <div id="player-bar"></div>
+                </div>
+                <div id="progress-meter"></div>
+                <div>Fish caught: <span id="fish-count">0</span></div>
+            </div>
         </div>
     </div>
 
-    <audio controls autoplay loop>
+    <!-- Audio -->
+    <audio id="background-audio" loop>
         <source src="lakebackgroundsound.mp3" type="audio/mpeg">
     </audio>
 
+    <button id="audio-toggle" class="audio-control">🔊</button>
+
     <script>
+
+        // Audio
+        document.addEventListener('DOMContentLoaded', function () {
+            const audio = document.getElementById('background-audio');
+            const button = document.getElementById('audio-toggle');
+
+            button.addEventListener('click', function () {
+                if (audio.paused) {
+                    audio.play();
+                    button.textContent = '🔊';
+                } else {
+                    audio.pause();
+                    button.textContent = '🔈';
+                }
+            });
+            document.addEventListener('click', function () {
+                if (audio.paused) {
+                    audio.play().catch(function (error) {
+                        console.log("Play failed:", error);
+                    });
+                }
+            }, { once: true }); // only trigger once
+        });
+
+        // Screen management
+        const titleScreen = document.getElementById('title-screen');
+        const instructionsScreen = document.getElementById('instructions-screen');
+        const mainContent = document.getElementById('main-content');
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const titleScreen = document.getElementById('title-screen');
+            const instructionsScreen = document.getElementById('instructions-screen');
+            const mainContent = document.getElementById('main-content');
+            const startButton = document.querySelector('#instructions-screen img');
+
+            // Title screen click handler
+            titleScreen.addEventListener('click', function () {
+                titleScreen.style.display = 'none';
+                instructionsScreen.style.display = 'block';
+            });
+
+            // Start button click handler
+            startButton.addEventListener('click', function () {
+                instructionsScreen.style.display = 'none';
+                mainContent.style.display = 'block';
+            });
+
+            // Debug logging
+            console.log('Title screen:', titleScreen);
+            console.log('Instructions screen:', instructionsScreen);
+            console.log('Start button:', startButton);
+            console.log('Main content:', mainContent);
+        });
 
         // Scene switching functionality
         const scenes = ['cabin-scene', 'lake-scene'];
