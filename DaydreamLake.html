@@ -285,6 +285,7 @@
             text-align: center;
         }
 
+        /* FISH minigame */
         #fishing-spot {
             width: 170px;
             height: 170px;
@@ -327,7 +328,6 @@
             position: absolute;
             left: 120px;
             top: 150px;
-            /* Added initial position */
         }
 
         #catching-bar {
@@ -365,6 +365,7 @@
             margin-top: 10px;
         }
 
+        /* AUDIO */
         .audio-control {
             position: fixed;
             bottom: 20px;
@@ -380,6 +381,57 @@
 
         .audio-control:hover {
             background: rgba(255, 255, 255, 1);
+        }
+
+        /* PADDLE minigame */
+        #paddle-game {
+            text-align: center;
+            padding: 20px;
+        }
+
+        #pattern-display,
+        #player-sequence {
+            min-height: 100px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .paddle-choice {
+            cursor: pointer;
+            padding: 10px;
+            transition: transform 0.2s;
+            max-width: 100px;
+        }
+
+        .paddle-choice:hover {
+            transform: scale(1.1);
+        }
+
+        .pattern-paddle {
+            max-width: 80px;
+            margin: 0 5px;
+        }
+
+        #feedback {
+            margin: 20px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        #start-game {
+            padding: 10px 20px;
+            font-size: 1.1em;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #start-game:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
@@ -421,6 +473,18 @@
             <span class="close-popup">×</span>
 
             <h2>Match the pattern!</h2>
+
+            <div id="paddle-game">
+                <div id="pattern-display"></div>
+                <div id="paddle-selection">
+                    <img src="small-paddle.png" class="paddle-choice" data-size="small" alt="Small Paddle">
+                    <img src="medium-paddle.png" class="paddle-choice" data-size="medium" alt="Medium Paddle">
+                    <img src="large-paddle.png" class="paddle-choice" data-size="large" alt="Large Paddle">
+                </div>
+                <div id="player-sequence"></div>
+                <div id="feedback"></div>
+                <button id="start-game">Start New Pattern</button>
+            </div>
 
         </div>
 
@@ -747,6 +811,122 @@
                     progressMeter.style.height = '0%';
                 }
             }
+
+            // PADDLE minigame
+
+            const paddleGame = {
+                currentPattern: [],
+                playerSequence: [],
+                patternLength: 3,
+                paddleSizes: ['small', 'medium', 'large'],
+                isPatternVisible: false,
+
+                init() {
+                    this.patternDisplay = document.getElementById('pattern-display');
+                    this.playerSequenceDisplay = document.getElementById('player-sequence');
+                    this.feedbackDisplay = document.getElementById('feedback');
+
+                    // Add click handlers for paddle choices
+                    document.querySelectorAll('.paddle-choice').forEach(paddle => {
+                        paddle.addEventListener('click', () => this.handlePaddleClick(paddle.dataset.size));
+                    });
+
+                    // Add start game button handler
+                    document.getElementById('start-game').addEventListener('click', () => this.startNewGame());
+                },
+
+                generatePattern() {
+                    this.currentPattern = [];
+                    for (let i = 0; i < this.patternLength; i++) {
+                        const randomIndex = Math.floor(Math.random() * this.paddleSizes.length);
+                        this.currentPattern.push(this.paddleSizes[randomIndex]);
+                    }
+                },
+
+                displayPattern() {
+                    this.patternDisplay.innerHTML = '';
+                    this.currentPattern.forEach(size => {
+                        const paddleImg = document.createElement('img');
+                        paddleImg.src = `${size}-paddle.png`;
+                        paddleImg.classList.add('pattern-paddle');
+                        paddleImg.alt = `${size} Paddle`;
+                        this.patternDisplay.appendChild(paddleImg);
+                    });
+                },
+
+                hidePattern() {
+                    this.patternDisplay.innerHTML = '';
+                    this.isPatternVisible = false;
+                },
+
+                handlePaddleClick(size) {
+                    if (this.isPatternVisible) return;
+
+                    this.playerSequence.push(size);
+                    this.updatePlayerSequenceDisplay();
+
+                    if (this.playerSequence.length === this.currentPattern.length) {
+                        this.checkPattern();
+                    }
+                },
+
+                updatePlayerSequenceDisplay() {
+                    this.playerSequenceDisplay.innerHTML = '';
+                    this.playerSequence.forEach(size => {
+                        const paddleImg = document.createElement('img');
+                        paddleImg.src = `${size}-paddle.png`;
+                        paddleImg.classList.add('pattern-paddle');
+                        paddleImg.alt = `${size} Paddle`;
+                        this.playerSequenceDisplay.appendChild(paddleImg);
+                    });
+                },
+
+                checkPattern() {
+                    const isCorrect = this.currentPattern.every(
+                        (size, index) => size === this.playerSequence[index]
+                    );
+
+                    if (isCorrect) {
+                        this.feedbackDisplay.textContent = 'Correct! Well done!';
+                        this.feedbackDisplay.style.color = '#4CAF50';
+                        setTimeout(() => {
+                            this.patternLength++; // Increase difficulty
+                            this.startNewGame();
+                        }, 1500);
+                    } else {
+                        this.feedbackDisplay.textContent = 'Incorrect. Try again!';
+                        this.feedbackDisplay.style.color = '#f44336';
+                        setTimeout(() => {
+                            this.resetGame();
+                        }, 1500);
+                    }
+                },
+
+                startNewGame() {
+                    this.resetGame();
+                    this.generatePattern();
+                    this.displayPattern();
+                    this.isPatternVisible = true;
+
+                    // Hide pattern after 3 seconds
+                    setTimeout(() => {
+                        this.hidePattern();
+                    }, 3000);
+                },
+
+                resetGame() {
+                    this.playerSequence = [];
+                    this.updatePlayerSequenceDisplay();
+                    this.feedbackDisplay.textContent = '';
+                }
+            };
+
+            // Initialize the game when the cabin popup opens
+            document.querySelector('#cabin').addEventListener('click', () => {
+                // Assuming you have a way to show the popup
+                paddleGame.init();
+            });
+
 
             // Main game loop
             function gameLoop() {
