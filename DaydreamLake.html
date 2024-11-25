@@ -251,21 +251,16 @@
         #pattern-display,
         #player-sequence {
             min-height: 60px;
-            /* Reduced height */
             margin: 10px 0;
-            /* Reduced margin */
             display: flex;
             justify-content: center;
             gap: 5px;
-            /* Reduced gap */
         }
 
-        /* Adjust paddle sizes */
         .paddle-choice {
             cursor: pointer;
             padding: 5px;
             transition: transform 0.2s;
-            /* Set specific sizes for each paddle type */
         }
 
         /* Adjusting the specific sizes for each paddle */
@@ -282,7 +277,6 @@
         }
 
         .pattern-paddle {
-            /* Match the sizes of the paddle choices */
             max-width: 60px;
             height: auto;
         }
@@ -301,17 +295,13 @@
 
         #feedback {
             margin: 10px 0;
-            /* Reduced margin */
             font-size: 1em;
-            /* Slightly smaller font */
             font-weight: bold;
         }
 
         #start-game {
             padding: 8px 16px;
-            /* Slightly smaller padding */
             font-size: 1em;
-            /* Slightly smaller font */
             margin-bottom: 10px;
         }
 
@@ -435,6 +425,23 @@
             gap: 20px;
         }
 
+        #fishing-score-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 20px;
+        }
+
+        #fish-count {
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        #fish-count-label {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
         #fish-target {
             width: 40px;
             height: 40px;
@@ -482,6 +489,22 @@
         .counter-container {
             text-align: center;
             margin-top: 10px;
+        }
+
+        #lilypads-popup {
+            position: relative;
+        }
+
+        #frog-score-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            text-align: right;
+        }
+
+        #frog-count {
+            font-size: 32px;
+            font-weight: bold;
         }
 
         /* AUDIO */
@@ -555,7 +578,7 @@
     </style>
 </head>
 
-<body>
+<body style="background-color:#add8e6;">
 
     <!-- Title and Instruction Screne -->
     <div id="title-screen" class="screen"></div>
@@ -639,12 +662,18 @@
             <span class="close-popup">×</span>
             <h2>Gone fishing!</h2>
             <div id="fishing-game">
-                <div id="fish-target"></div>
-                <div id="catching-bar">
-                    <div id="player-bar"></div>
+                <div id="fishing-score-container">
+                    <div id="fish-count-label">Score</div>
+                    <div id="fish-count">0</div>
                 </div>
-                <div id="progress-meter"></div>
-                <div>Fish caught: <span id="fish-count">0</span></div>
+
+                <div id="game-elements">
+                    <div id="fish-target"></div>
+                    <div id="catching-bar">
+                        <div id="player-bar"></div>
+                    </div>
+                    <div id="progress-meter"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -837,7 +866,7 @@
         });
 
 
-        // Frog game functionality
+        //FROG GAME
         let frogGameInterval;
         let frogsCount = 0;
 
