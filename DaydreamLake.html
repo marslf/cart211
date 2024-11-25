@@ -147,7 +147,7 @@
         #campfire {
             width: 130px;
             height: 130px;
-            bottom: 100px;
+            bottom: 130px;
             right: 222px;
             background: url('Campfire.png') no-repeat center center;
             background-size: contain;
@@ -225,6 +225,90 @@
             font-size: 20px;
         }
 
+        #cabin-popup {
+            max-width: 400px;
+            max-height: 80vh;
+            /* 80% of viewport height */
+            overflow-y: auto;
+            padding: 20px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #paddle-game {
+            text-align: center;
+            padding: 10px;
+            /* Reduced padding */
+        }
+
+        #pattern-display,
+        #player-sequence {
+            min-height: 60px;
+            /* Reduced height */
+            margin: 10px 0;
+            /* Reduced margin */
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            /* Reduced gap */
+        }
+
+        /* Adjust paddle sizes */
+        .paddle-choice {
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.2s;
+            /* Set specific sizes for each paddle type */
+        }
+
+        /* Adjusting the specific sizes for each paddle */
+        .paddle-choice[data-size="small"] {
+            height: 80px;
+        }
+
+        .paddle-choice[data-size="medium"] {
+            height: 100px;
+        }
+
+        .paddle-choice[data-size="large"] {
+            height: 120px;
+        }
+
+        .pattern-paddle {
+            /* Match the sizes of the paddle choices */
+            max-width: 60px;
+            height: auto;
+        }
+
+        .pattern-paddle[src*="small"] {
+            height: 80px;
+        }
+
+        .pattern-paddle[src*="medium"] {
+            height: 100px;
+        }
+
+        .pattern-paddle[src*="large"] {
+            height: 120px;
+        }
+
+        #feedback {
+            margin: 10px 0;
+            /* Reduced margin */
+            font-size: 1em;
+            /* Slightly smaller font */
+            font-weight: bold;
+        }
+
+        #start-game {
+            padding: 8px 16px;
+            /* Slightly smaller padding */
+            font-size: 1em;
+            /* Slightly smaller font */
+            margin-bottom: 10px;
+        }
 
         /* Marshmallow roasting game styles */
         #marshmallow {
@@ -833,7 +917,31 @@
 
                     // Add start game button handler
                     document.getElementById('start-game').addEventListener('click', () => this.startNewGame());
+
+                    this.displayPattern = function () {
+                        this.patternDisplay.innerHTML = '';
+                        this.currentPattern.forEach(size => {
+                            const paddleImg = document.createElement('img');
+                            paddleImg.src = `${size}-paddle.png`;
+                            paddleImg.classList.add('pattern-paddle');
+                            paddleImg.alt = `${size} Paddle`;
+                            this.patternDisplay.appendChild(paddleImg);
+                        });
+                    };
+
+                    // Add size classes to player sequence paddles
+                    this.updatePlayerSequenceDisplay = function () {
+                        this.playerSequenceDisplay.innerHTML = '';
+                        this.playerSequence.forEach(size => {
+                            const paddleImg = document.createElement('img');
+                            paddleImg.src = `${size}-paddle.png`;
+                            paddleImg.classList.add('pattern-paddle');
+                            paddleImg.alt = `${size} Paddle`;
+                            this.playerSequenceDisplay.appendChild(paddleImg);
+                        });
+                    };
                 },
+
 
                 generatePattern() {
                     this.currentPattern = [];
@@ -928,7 +1036,51 @@
             });
 
 
-            // Main game loop
+            //FISHING MINIGAME
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const fishingSpot = document.getElementById('fishing-spot');
+                const fishingPopup = document.getElementById('fishing-popup');
+                const popupOverlay = document.querySelector('.popup-overlay');
+                const closeButtons = document.querySelectorAll('.close-popup');
+
+                // Fishing spot click handler
+                if (fishingSpot) {
+                    fishingSpot.addEventListener('click', () => {
+                        fishingPopup.style.display = 'block';
+                        popupOverlay.style.display = 'block';
+                    });
+                }
+
+                // Close button handlers
+                closeButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const popup = e.target.closest('.popup');
+                        if (popup) {
+                            popup.style.display = 'none';
+                            popupOverlay.style.display = 'none';
+
+                            // Reset game state if needed
+                            if (popup.id === 'fishing-popup') {
+                                const fishCount = document.getElementById('fish-count');
+                                if (fishCount) {
+                                    fishCount.textContent = '0';
+                                }
+                                // Reset other game elements to initial state
+                                const fishTarget = document.getElementById('fish-target');
+                                const playerBar = document.getElementById('player-bar');
+                                const progressMeter = document.getElementById('progress-meter');
+
+                                if (fishTarget) fishTarget.style.transform = 'translateY(0)';
+                                if (playerBar) playerBar.style.transform = 'translateY(0)';
+                                if (progressMeter) progressMeter.style.width = '0%';
+                            }
+                        }
+                    });
+                });
+            });
+
+            //Fishing game loop
             function gameLoop() {
                 if (fishingPopup.classList.contains('active')) {
                     moveFish();
